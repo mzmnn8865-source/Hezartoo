@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#05050a">
+<title>دگردیسی — هزارتو تا ماشین</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='40' fill='none' stroke='%23d9a441' stroke-width='6'/%3E%3Ccircle cx='50' cy='50' r='8' fill='%23d9a441'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;400;700&family=JetBrains+Mono:wght@300;400&display=swap">
+<noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@200;400;700&family=JetBrains+Mono:wght@300;400&display=swap">
+</noscript>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #05050a;
+    color: #e8e2d4;
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    touch-action: manipulation;
+    cursor: crosshair;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* لایه بافت دانه */
+  .grain {
+    position: fixed;
+    inset: -50%;
+    z-index: 100;
+    pointer-events: none;
+    opacity: 0.045;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    animation: grainShift 8s steps(8) infinite;
+  }
+  @keyframes grainShift {
+    0%   { transform: translate(0, 0); }
+    20%  { transform: translate(-2%, -1%); }
+    40%  { transform: translate(1%, 2%); }
+    60%  { transform: translate(-1%, 1%); }
+    80%  { transform: translate(2%, -1%); }
+    100% { transform: translate(0, 0); }
+  }
+
+  /* ویگنت */
+  .vignette {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at 50% 50%,
+      transparent 0%,
+      transparent 32%,
+      rgba(5, 5, 10, 0.38) 55%,
+      rgba(5, 5, 10, 0.84) 78%,
+      #05050a 100%
+    );
+  }
+
+  /* متن مرکزی — تغییر شکل */
+  .center-mark {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 80;
+    pointer-events: none;
+    text-align: center;
+    animation: breathe 6s ease-in-out infinite;
+  }
+  @keyframes breathe {
+    0%, 100% { opacity: 0.55; }
+    50%      { opacity: 0.95; }
+  }
+  .center-mark .phi {
+    display: block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(26px, 5.5vw, 48px);
+    color: #d9a441;
+    line-height: 1;
+    text-shadow:
+      0 0 24px rgba(217, 164, 65, 0.55),
+      0 0 60px rgba(217, 164, 65, 0.25);
+    letter-spacing: 0.05em;
+    transition: opacity 0.6s ease;
+  }
+  .center-mark .label {
+    display: block;
+    margin-top: 12px;
+    font-size: clamp(9px, 1.6vw, 11px);
+    font-weight: 400;
+    letter-spacing: 0.55em;
+    color: rgba(232, 226, 212, 0.5);
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    transition: opacity 0.6s ease;
+    min-height: 14px;
+  }
+
+  /* HUD */
+  .hud {
+    position: fixed;
+    z-index: 70;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    color: rgba(232, 226, 212, 0.32);
+    pointer-events: none;
+    text-transform: uppercase;
+    user-select: none;
+  }
+  .hud.tl { top: 22px; left: 22px; }
+  .hud.tr { top: 22px; right: 22px; text-align: right; }
+  .hud.bl { bottom: 22px; left: 22px; }
+  .hud.br { bottom: 22px; right: 22px; text-align: right; }
+
+  .hud .dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #d9a441;
+    margin-inline-end: 6px;
+    vertical-align: middle;
+    box-shadow: 0 0 8px #d9a441;
+    animation: pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; }
+    50%      { opacity: 1; }
+  }
+
+  .hud .depth {
+    display: block;
+    margin-top: 4px;
+    color: rgba(217, 164, 65, 0.55);
+    font-variant-numeric: tabular-nums;
+    direction: ltr;
+  }
+
+  /* نشانگر پیشرفت دگردیسی */
+  .progress-track {
+    position: fixed;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 18px;
+    border-radius: 100px;
+    background: rgba(13, 13, 21, 0.55);
+    border: 1px solid rgba(217, 164, 65, 0.12);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    pointer-events: none;
+    user-select: none;
+  }
+  .progress-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(232, 226, 212, 0.18);
+    transition: all 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+    flex-shrink: 0;
+  }
+  .progress-dot.active {
+    width: 22px;
+    border-radius: 100px;
+    background: #d9a441;
+    box-shadow: 0 0 14px rgba(217, 164, 65, 0.7);
+  }
+
+  /* راهنما */
+  .hint {
+    position: fixed;
+    bottom: 78px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 70;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.32em;
+    color: rgba(232, 226, 212, 0.28);
+    text-transform: uppercase;
+    pointer-events: none;
+    animation: hintFade 5s ease-in-out infinite;
+    white-space: nowrap;
+  }
+  @keyframes hintFade {
+    0%, 100% { opacity: 0.2; }
+    50%      { opacity: 0.6; }
+  }
+
+  /* دکمهٔ توقف */
+  .pause-btn {
+    position: fixed;
+    top: 50%;
+    inset-inline-end: 22px;
+    transform: translateY(-50%);
+    z-index: 200;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(217, 164, 65, 0.22);
+    background: rgba(217, 164, 65, 0.06);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: rgba(217, 164, 65, 0.75);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+  }
+  .pause-btn:hover {
+    background: rgba(217, 164, 65, 0.14);
+    border-color: rgba(217, 164, 65, 0.5);
+    color: #d9a441;
+    box-shadow: 0 0 28px rgba(217, 164, 65, 0.35);
+  }
+  .pause-btn svg { width: 14px; height: 14px; }
+  .pause-btn .icon-play { display: none; }
+  .pause-btn.paused .icon-pause { display: none; }
+  .pause-btn.paused .icon-play { display: block; }
+
+  @media (max-width: 600px) {
+    .hud { font-size: 9px; letter-spacing: 0.2em; }
+    .hud.tl, .hud.tr { top: 16px; }
+    .hud.tl { left: 14px; } .hud.tr { right: 14px; }
+    .hud.bl { bottom: 16px; left: 14px; }
+    .hud.br { bottom: 16px; right: 14px; }
+    .pause-btn {
+      top: auto;
+      bottom: 78px;
+      inset-inline-end: 14px;
+      transform: none;
+    }
+    .hint { bottom: 128px; font-size: 9px; letter-spacing: 0.22em; }
+    .progress-track { padding: 6px 14px; gap: 8px; }
+    .progress-dot { width: 5px; height: 5px; }
+    .progress-dot.active { width: 18px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .grain, .center-mark, .hud .dot, .hint { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stage"></canvas>
+
+<div class="vignette" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="center-mark" aria-hidden="true">
+  <span class="phi">φ</span>
+  <span class="label" id="shapeLabel">LABYRINTH</span>
+</div>
+
+<div class="hud tl" aria-hidden="true">
+  <span class="dot"></span>METAMORPHOSIS
+  <span class="depth" id="shapeNum">01 / 06</span>
+</div>
+<div class="hud tr" aria-hidden="true">
+  PHASE · <span id="phaseLabel">MORPH</span>
+  <span class="depth" id="fpsLabel">60 fps</span>
+</div>
+<div class="hud bl" aria-hidden="true">
+  <span id="particleCount">0</span> PARTICLES
+</div>
+<div class="hud br" aria-hidden="true">
+  AUTO · <span id="timerLabel">8.0s</span>
+</div>
+
+<div class="hint" aria-hidden="true">
+  CLICK · TO · TRANSFORM
+</div>
+
+<div class="progress-track" id="progressTrack" aria-hidden="true"></div>
+
+<button class="pause-btn" id="pauseBtn" type="button" aria-label="توقف / ادامه">
+  <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor">
+    <rect x="6" y="4" width="4" height="16" rx="1"/>
+    <rect x="14" y="4" width="4" height="16" rx="1"/>
+  </svg>
+  <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8 5v14l11-7z"/>
+  </svg>
+</button>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ═══════════════════════════════════════════════════════
+     ابزارها
+     ═══════════════════════════════════════════════════════ */
+  const canvas = document.getElementById('stage');
+  const ctx = canvas.getContext('2d', { alpha: false });
+
+  const prefersReduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const isMobile = matchMedia('(max-width: 768px)').matches;
+  const lowEnd = (navigator.hardwareConcurrency || 4) <= 4;
+  const DPR_CAP = isMobile || lowEnd ? 1.5 : 2;
+
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const lerp = (a, b, k) => a + (b - a) * k;
+  const easeInOutQuart = t => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+  const rand = (a, b) => a + Math.random() * (b - a);
+
+  /* ═══════════════════════════════════════════════════════
+     ابعاد
+     ═══════════════════════════════════════════════════════ */
+  let W = 0, H = 0, CX = 0, CY = 0, SCALE = 0, dpr = 1;
+
+  function resize() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, DPR_CAP);
+    W = Math.max(1, rect.width);
+    H = Math.max(1, rect.height);
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    CX = W / 2;
+    CY = H / 2;
+    SCALE = Math.min(W, H) * 0.42;
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     تولید نقاط شکل‌ها — همه در فضای [-1, 1]
+     ═══════════════════════════════════════════════════════ */
+  const ShapeGen = {
+
+    /* ─── هزارتو ─── */
+    labyrinth(n) {
+      const pts = [];
+      const rings = Math.max(14, Math.floor(Math.sqrt(n) * 1.4));
+      let remaining = n;
+      for (let r = 0; r < rings && remaining > 0; r++) {
+        const radius = 0.08 + (r / rings) * 0.92;
+        const segs = 5 + (r % 9);
+        const rot = r * 0.45;
+        const perSeg = Math.max(2, Math.floor(remaining / (rings - r) / segs));
+        for (let s = 0; s < segs && remaining > 0; s++) {
+          const segStart = (s / segs) * Math.PI * 2 + rot;
+          const segLen = (Math.PI * 2 / segs) * (0.55 + Math.sin(r * 1.3 + s) * 0.12);
+          for (let i = 0; i < perSeg && remaining > 0; i++) {
+            const a = segStart + segLen * (i / perSeg);
+            const jr = 0.004 + Math.random() * 0.006;
+            pts.push({
+              x: Math.cos(a) * radius + (Math.random() - 0.5) * jr,
+              y: Math.sin(a) * radius + (Math.random() - 0.5) * jr,
+              r: 217, g: 164, b: 65
+            });
+            remaining--;
+          }
+        }
+      }
+      while (pts.length < n) {
+        const a = Math.random() * Math.PI * 2;
+        const rr = 0.08 + Math.random() * 0.92;
+        pts.push({ x: Math.cos(a) * rr, y: Math.sin(a) * rr, r: 217, g: 164, b: 65 });
+      }
+      return pts;
+    },
+
+    /* ─── گل ─── */
+    flower(n) {
+      const pts = [];
+      const outerPetals = 8;
+      const innerPetals = 8;
+      const outerCount = Math.floor(n * 0.42);
+      const innerCount = Math.floor(n * 0.26);
+      const stamenCount = n - outerCount - innerCount;
+
+      /* گلبرگ‌های بیرونی */
+      const perOuter = Math.floor(outerCount / outerPetals);
+      for (let p = 0; p < outerPetals; p++) {
+        const baseAng = (p / outerPetals) * Math.PI * 2 - Math.PI / 2;
+        for (let i = 0; i < perOuter; i++) {
+          const t = i / perOuter;
+          /* طول گلبرگ با پروفایل بیضی‌گونه */
+          const r = 0.2 + t * 0.78;
+          const width = Math.sin(t * Math.PI) * 0.34;
+          const jitter = (Math.random() - 0.5) * width;
+          const normalAng = baseAng + Math.PI / 2;
+          const pink = 0.4 + (1 - t) * 0.6;
+          pts.push({
+            x: Math.cos(baseAng) * r + Math.cos(normalAng) * jitter,
+            y: Math.sin(baseAng) * r + Math.sin(normalAng) * jitter,
+            r: Math.round(220 + pink * 35),
+            g: Math.round(120 + pink * 60),
+            b: Math.round(155 + pink * 40)
+          });
+        }
+      }
+
+      /* گلبرگ‌های درونی */
+      const perInner = Math.floor(innerCount / innerPetals);
+      for (let p = 0; p < innerPetals; p++) {
+        const baseAng = (p / innerPetals) * Math.PI * 2 + Math.PI / 8;
+        for (let i = 0; i < perInner; i++) {
+          const t = i / perInner;
+          const r = 0.14 + t * 0.42;
+          const width = Math.sin(t * Math.PI) * 0.2;
+          const jitter = (Math.random() - 0.5) * width;
+          const normalAng = baseAng + Math.PI / 2;
+          pts.push({
+            x: Math.cos(baseAng) * r + Math.cos(normalAng) * jitter,
+            y: Math.sin(baseAng) * r + Math.sin(normalAng) * jitter,
+            r: 245, g: 165, b: 195
+          });
+        }
+      }
+
+      /* پرچم‌ها */
+      for (let i = 0; i < stamenCount; i++) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * 0.15;
+        pts.push({
+          x: Math.cos(a) * r,
+          y: Math.sin(a) * r,
+          r: 255, g: 220, b: 130
+        });
+      }
+
+      /* توزیع بهتر — به‌هم‌ریختن */
+      while (pts.length < n) {
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * 0.1;
+        pts.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, r: 255, g: 220, b: 130 });
+      }
+      return pts.slice(0, n);
+    },
+
+    /* ─── درخت ─── */
+    tree(n) {
+      const pts = [];
+      const branches = [];
+
+      /* تولید ساختار درخت */
+      function branch(x, y, angle, length, depth) {
+        if (depth > 5) return;
+        const x2 = x + Math.cos(angle) * length;
+        const y2 = y + Math.sin(angle) * length;
+        branches.push({ x1: x, y1: y, x2, y2, depth, angle });
+        const newLen = length * 0.72;
+        const spread = 0.42 + Math.random() * 0.06;
+        branch(x2, y2, angle - spread, newLen, depth + 1);
+        branch(x2, y2, angle + spread, newLen, depth + 1);
+      }
+      branch(0, 0.95, -Math.PI / 2, 0.4, 0);
+
+      /* وزن‌دهی: تنه سنگین‌تر */
+      const trunkCount = Math.floor(n * 0.06);
+      const branchCount = Math.floor(n * 0.34);
+      const leafCount = n - trunkCount - branchCount;
+
+      /* تنه */
+      const trunk = branches[0];
+      for (let i = 0; i < trunkCount; i++) {
+        const t = i / trunkCount;
+        const x = lerp(trunk.x1, trunk.x2, t);
+        const y = lerp(trunk.y1, trunk.y2, t);
+        const w = (1 - t) * 0.03;
+        pts.push({
+          x: x + (Math.random() - 0.5) * w,
+          y: y + (Math.random() - 0.5) * 0.01,
+          r: 120, g: 80, b: 45
+        });
+      }
+
+      /* شاخه‌ها */
+      const perBranch = Math.max(1, Math.floor(branchCount / (branches.length - 1)));
+      for (let b = 1; b < branches.length; b++) {
+        const br = branches[b];
+        const weight = 1 / (br.depth + 0.5);
+        const cnt = Math.max(1, Math.floor(perBranch * (1 + weight)));
+        for (let i = 0; i < cnt && pts.length < trunkCount + branchCount; i++) {
+          const t = i / cnt;
+          const x = lerp(br.x1, br.x2, t);
+          const y = lerp(br.y1, br.y2, t);
+          const jitter = 0.008 * (1 + (5 - br.depth) * 0.4);
+          const brown = br.depth < 3;
+          pts.push({
+            x: x + (Math.random() - 0.5) * jitter,
+            y: y + (Math.random() - 0.5) * jitter,
+            r: brown ? 130 : 100,
+            g: brown ? 85 : 130,
+            b: brown ? 50 : 60
+          });
+        }
+      }
+
+      /* برگ‌ها در نوک شاخه‌ها */
+      const tips = branches.filter(b => b.depth >= 4);
+      while (pts.length < n && tips.length) {
+        const tip = tips[Math.floor(Math.random() * tips.length)];
+        const a = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * 0.14;
+        pts.push({
+          x: tip.x2 + Math.cos(a) * r,
+          y: tip.y2 + Math.sin(a) * r,
+          r: 75 + Math.random() * 30,
+          g: 160 + Math.random() * 45,
+          b: 70 + Math.random() * 30
+        });
+      }
+
+      while (pts.length < n) {
+        pts.push({ x: 0, y: -0.6, r: 90, g: 180, b: 90 });
+      }
+      return pts.slice(0, n);
+    },
+
+    /* ─── صورت زن — پروفایل ─── */
+    woman(n) {
+      const pts = [];
+
+      /* پروفایل صورت (رو به راست) */
+      const profile = [
+        [0, -0.92],       /* فرق سر */
+        [0.14, -0.80],
+        [0.22, -0.62],    /* پیشانی */
+        [0.26, -0.44],    /* ابرو */
+        [0.27, -0.32],    /* پل بینی */
+        [0.30, -0.20],
+        [0.40, -0.06],    /* نوک بینی */
+        [0.32, 0.04],     /* زیر بینی */
+        [0.30, 0.10],
+        [0.36, 0.18],     /* لب بالا */
+        [0.33, 0.23],     /* فاصله لب */
+        [0.36, 0.29],     /* لب پایین */
+        [0.30, 0.40],     /* چانه */
+        [0.18, 0.55],
+        [0.10, 0.68],
+        [0.08, 0.92]      /* گردن */
+      ];
+
+      /* پشت سر */
+      const backProfile = [
+        [0, -0.92],
+        [-0.18, -0.84],
+        [-0.34, -0.68],
+        [-0.44, -0.44],
+        [-0.46, -0.12],
+        [-0.42, 0.18],
+        [-0.32, 0.42],
+        [-0.20, 0.60],
+        [-0.10, 0.72]
+      ];
+
+      const profileCount = Math.floor(n * 0.32);
+      const backCount = Math.floor(n * 0.16);
+      const hairCount = n - profileCount - backCount;
+
+      /* پروفایل */
+      const totalSeg = profile.length - 1;
+      for (let i = 0; i < profileCount; i++) {
+        const seg = (i / profileCount) * totalSeg;
+        const sIdx = Math.floor(seg);
+        const t = seg - sIdx;
+        const p0 = profile[sIdx];
+        const p1 = profile[sIdx + 1] || p0;
+        pts.push({
+          x: lerp(p0[0], p1[0], t) + (Math.random() - 0.5) * 0.012,
+          y: lerp(p0[1], p1[1], t) + (Math.random() - 0.5) * 0.012,
+          r: 245, g: 210, b: 185
+        });
+      }
+
+      /* پشت سر */
+      const totalBack = backProfile.length - 1;
+      for (let i = 0; i < backCount; i++) {
+        const seg = (i / backCount) * totalBack;
+        const sIdx = Math.floor(seg);
+        const t = seg - sIdx;
+        const p0 = backProfile[sIdx];
+        const p1 = backProfile[sIdx + 1] || p0;
+        pts.push({
+          x: lerp(p0[0], p1[0], t) + (Math.random() - 0.5) * 0.018,
+          y: lerp(p0[1], p1[1], t) + (Math.random() - 0.5) * 0.018,
+          r: 235, g: 195, b: 175
+        });
+      }
+
+      /* موهای جاری */
+      for (let i = 0; i < hairCount; i++) {
+        /* منحنی مو از بالای سر به پشت و پایین */
+        const a = -Math.PI * 0.85 + Math.random() * Math.PI * 1.4;
+        const layer = Math.random(); /* 0 = نزدیک به سر، 1 = بیرونی */
+        const baseR = 0.35 + layer * 0.3;
+        const hx = -0.15 + Math.cos(a) * baseR * 0.95;
+        const hy = -0.25 + Math.sin(a) * baseR * 1.1;
+        /* جریان به سمت پایین */
+        const flow = layer * 0.35 + Math.random() * 0.15;
+        pts.push({
+          x: hx + (Math.random() - 0.5) * 0.06 + layer * 0.05,
+          y: hy + flow + (Math.random() - 0.5) * 0.05,
+          r: 55 + Math.floor(Math.random() * 25),
+          g: 45 + Math.floor(Math.random() * 20),
+          b: 40 + Math.floor(Math.random() * 15)
+        });
+      }
+
+      while (pts.length < n) {
+        pts.push({ x: -0.3, y: 0, r: 60, g: 50, b: 45 });
+      }
+      return pts.slice(0, n);
+    },
+
+    /* ─── شهر ─── */
+    city(n) {
+      const pts = [];
+      const buildings = [];
+
+      /* ساخت اسکای‌لاین */
+      let bx = -1.05;
+      while (bx < 1.05) {
+        const w = rand(0.06, 0.14);
+        const h = rand(0.15, 0.72);
+        buildings.push({ x: bx, w, h });
+        bx += w + rand(0.008, 0.03);
+      }
+
+      const baseline = 0.92;
+      const outlineCount = Math.floor(n * 0.42);
+      const windowCount = Math.floor(n * 0.42);
+      const starCount = n - outlineCount - windowCount;
+
+      /* خطوط بیرونی ساختمان‌ها */
+      const perB = Math.max(3, Math.floor(outlineCount / buildings.length));
+      for (const b of buildings) {
+        const topY = baseline - b.h * 1.85;
+        const outline = [
+          [b.x, baseline],
+          [b.x, topY],
+          [b.x + b.w, topY],
+          [b.x + b.w, baseline]
+        ];
+        for (let i = 0; i < perB; i++) {
+          const seg = (i / perB) * 3;
+          const sIdx = Math.floor(seg);
+          const t = seg - sIdx;
+          const p0 = outline[sIdx];
+          const p1 = outline[sIdx + 1];
+          pts.push({
+            x: lerp(p0[0], p1[0], t),
+            y: lerp(p0[1], p1[1], t),
+            r: 100, g: 140, b: 180
+          });
+        }
+      }
+
+      /* پنجره‌های روشن */
+      const windowsByBuilding = [];
+      for (const b of buildings) {
+        const topY = baseline - b.h * 1.85;
+        const rows = Math.max(2, Math.floor(b.h * 8));
+        const cols = Math.max(2, Math.floor(b.w * 22));
+        for (let ry = 0; ry < rows; ry++) {
+          for (let cx = 0; cx < cols; cx++) {
+            if (Math.random() < 0.42) {
+              windowsByBuilding.push({
+                x: b.x + (cx + 0.5) * (b.w / cols),
+                y: topY + (ry + 0.5) * ((baseline - topY) / rows)
+              });
+            }
+          }
+        }
+      }
+
+      for (let i = 0; i < windowCount && i < windowsByBuilding.length; i++) {
+        const w = windowsByBuilding[i];
+        const warm = Math.random() < 0.75;
+        pts.push({
+          x: w.x,
+          y: w.y,
+          r: warm ? 245 : 130,
+          g: warm ? 200 : 190,
+          b: warm ? 110 : 240
+        });
+      }
+
+      /* ستاره‌ها بالای ساختمان‌ها */
+      while (pts.length < n) {
+        pts.push({
+          x: rand(-1, 1),
+          y: rand(-1, 0.2),
+          r: 220, g: 225, b: 245
+        });
+      }
+
+      return pts.slice(0, n);
+    },
+
+    /* ─── ماشین — پروفایل اسپرت ─── */
+    car(n) {
+      const pts = [];
+
+      /* بدنه (رو به راست) */
+      const body = [
+        [-0.85, 0.55],
+        [-0.92, 0.25],   /* عقب */
+        [-0.88, -0.02],
+        [-0.62, -0.18],  /* صندوق */
+        [-0.35, -0.32],
+        [-0.05, -0.42],  /* سقف */
+        [0.28, -0.42],
+        [0.52, -0.28],   /* شیشه جلو */
+        [0.70, -0.10],
+        [0.88, 0.02],    /* کاپوت */
+        [0.94, 0.22],    /* جلو */
+        [0.92, 0.50],
+        [0.70, 0.55],
+        [0.30, 0.55],
+        [-0.30, 0.55],
+        [-0.60, 0.55]
+      ];
+
+      const bodyCount = Math.floor(n * 0.5);
+      const wheelCount = Math.floor(n * 0.24);
+      const windowCount = Math.floor(n * 0.16);
+      const detailCount = n - bodyCount - wheelCount - windowCount;
+
+      /* خط بیرونی بدنه */
+      const totalSeg = body.length - 1;
+      for (let i = 0; i < bodyCount; i++) {
+        const seg = (i / bodyCount) * totalSeg;
+        const sIdx = Math.floor(seg);
+        const t = seg - sIdx;
+        const p0 = body[sIdx];
+        const p1 = body[sIdx + 1];
+        pts.push({
+          x: lerp(p0[0], p1[0], t) + (Math.random() - 0.5) * 0.006,
+          y: lerp(p0[1], p1[1], t) + (Math.random() - 0.5) * 0.006,
+          r: 200, g: 55, b: 55
+        });
+      }
+
+      /* چرخ‌ها */
+      const wheels = [
+        { cx: -0.55, cy: 0.72, r: 0.17 },
+        { cx: 0.55, cy: 0.72, r: 0.17 }
+      ];
+      const perWheel = Math.floor(wheelCount / 2);
+      for (const w of wheels) {
+        for (let i = 0; i < perWheel; i++) {
+          const a = (i / perWheel) * Math.PI * 2;
+          const rr = w.r * (0.85 + Math.random() * 0.15);
+          pts.push({
+            x: w.cx + Math.cos(a) * rr,
+            y: w.cy + Math.sin(a) * rr,
+            r: 35, g: 35, b: 42
+          });
+        }
+      }
+
+      /* شیشه‌ها */
+      const windows = [
+        { x1: -0.42, y1: -0.15, x2: -0.05, y2: -0.38 },
+        { x1: -0.02, y1: -0.38, x2: 0.30, y2: -0.36 },
+        { x1: 0.32, y1: -0.32, x2: 0.55, y2: -0.12 }
+      ];
+      for (let i = 0; i < windowCount; i++) {
+        const w = windows[Math.floor(Math.random() * windows.length)];
+        const t = Math.random();
+        pts.push({
+          x: lerp(w.x1, w.x2, t) + (Math.random() - 0.5) * 0.02,
+          y: lerp(w.y1, w.y2, t) + (Math.random() - 0.5) * 0.02,
+          r: 90, g: 130, b: 190
+        });
+      }
+
+      /* جزئیات (چراغ، درز) */
+      for (let i = 0; i < detailCount; i++) {
+        const side = Math.random() < 0.5 ? -1 : 1;
+        if (side < 0) {
+          /* چراغ جلو */
+          pts.push({
+            x: rand(0.75, 0.92),
+            y: rand(-0.02, 0.15),
+            r: 255, g: 235, b: 190
+          });
+        } else {
+          /* چراغ عقب */
+          pts.push({
+            x: rand(-0.90, -0.82),
+            y: rand(0.10, 0.25),
+            r: 255, g: 80, b: 60
+          });
+        }
+      }
+
+      while (pts.length < n) {
+        pts.push({ x: 0, y: 0.4, r: 180, g: 50, b: 50 });
+      }
+      return pts.slice(0, n);
+    }
+  };
+
+  /* ═══════════════════════════════════════════════════════
+     متادیتای شکل‌ها
+     ═══════════════════════════════════════════════════════ */
+  const SHAPE_ORDER = ['labyrinth', 'flower', 'tree', 'woman', 'city', 'car'];
+  const SHAPE_META = {
+    labyrinth: { label: 'LABYRINTH', rotation: 0.14 },
+    flower:    { label: 'FLOWER',    rotation: 0.03 },
+    tree:      { label: 'TREE',      rotation: 0.010 },
+    woman:     { label: 'WOMAN',     rotation: 0.008 },
+    city:      { label: 'CITY',      rotation: 0.005 },
+    car:       { label: 'CAR',       rotation: 0.020 }
+  };
+
+  /* ═══════════════════════════════════════════════════════
+     سیستم ذرات
+     ═══════════════════════════════════════════════════════ */
+  const N = prefersReduced ? 180 : (isMobile || lowEnd ? 260 : 400);
+
+  const particles = [];
+  for (let i = 0; i < N; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 0.5 + Math.random() * 0.5;
+    particles.push({
+      /* موقعیت فعلی */
+      cx: Math.cos(a) * r,
+      cy: Math.sin(a) * r,
+      /* موقعیت شروع morph */
+      sx: 0, sy: 0,
+      /* موقعیت هدف */
+      tx: 0, ty: 0,
+      /* رنگ فعلی */
+      cr: 217, cg: 164, cb: 65,
+      /* رنگ شروع */
+      sr: 217, sg: 164, sb: 65,
+      /* رنگ هدف */
+      tr: 217, tg: 164, tb: 65,
+      /* اندازه */
+      size: 0.9 + Math.random() * 0.6,
+      /* برای حرکت زنده */
+      seed: Math.random() * Math.PI * 2,
+      drift: 0.5 + Math.random() * 0.8
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     State
+     ═══════════════════════════════════════════════════════ */
+  let currentShape = 'labyrinth';
+  let morphProgress = 1;
+  const MORPH_DURATION = 2.6;   /* ثانیه */
+  const HOLD_DURATION = 6.0;    /* ثانیه */
+  let holdTimer = 0;
+  let time = 0;
+  let globalRotation = 0;
+  let paused = false;
+  let targetPause = 1;
+  let currentPause = 1;
+  let running = true;
+  let rafId = null;
+  let lastT = performance.now();
+  let fpsAcc = 0, fpsCount = 0;
+
+  /* pointer parallax */
+  let targetMX = 0.5, targetMY = 0.5;
+  let currentMX = 0.5, currentMY = 0.5;
+
+  /* ═══════════════════════════════════════════════════════
+     تولید هدف‌های شکل + تخصیص به ذرات
+     ═══════════════════════════════════════════════════════ */
+  function assignShape(shapeName) {
+    const targets = ShapeGen[shapeName](N);
+
+    /* مرتب‌سازی بر اساس زاویه برای morph نرم */
+    const pSorted = particles.map((p, i) => ({
+      p, a: Math.atan2(p.cy, p.cx), i
+    })).sort((A, B) => A.a - B.a);
+
+    const tSorted = targets.map((t, i) => ({
+      t, a: Math.atan2(t.y, t.x), i
+    })).sort((A, B) => A.a - B.a);
+
+    for (let i = 0; i < N; i++) {
+      const p = pSorted[i].p;
+      const t = tSorted[i].t;
+      p.sx = p.cx; p.sy = p.cy;
+      p.tx = t.x;  p.ty = t.y;
+      p.sr = p.cr; p.sg = p.cg; p.sb = p.cb;
+      p.tr = t.r;  p.tg = t.g;  p.tb = t.b;
+    }
+
+    currentShape = shapeName;
+    morphProgress = 0;
+    holdTimer = 0;
+
+    /* به‌روزرسانی UI */
+    updateShapeUI();
+  }
+
+  function updateShapeUI() {
+    const shapeIdx = SHAPE_ORDER.indexOf(currentShape);
+    const labelEl = document.getElementById('shapeLabel');
+    const numEl = document.getElementById('shapeNum');
+    const phaseEl = document.getElementById('phaseLabel');
+
+    if (labelEl) {
+      labelEl.style.opacity = '0';
+      setTimeout(() => {
+        labelEl.textContent = SHAPE_META[currentShape].label;
+        labelEl.style.opacity = '1';
+      }, 250);
+    }
+    if (numEl) {
+      numEl.textContent = String(shapeIdx + 1).padStart(2, '0') + ' / ' +
+                         String(SHAPE_ORDER.length).padStart(2, '0');
+    }
+    if (phaseEl) phaseEl.textContent = 'MORPH';
+
+    /* نقطه‌های پیشرفت */
+    const track = document.getElementById('progressTrack');
+    if (track) {
+      track.innerHTML = SHAPE_ORDER.map((s, i) =>
+        '<span class="progress-dot' + (i === shapeIdx ? ' active' : '') + '"></span>'
+      ).join('');
+    }
+  }
+
+  function nextShape() {
+    const idx = SHAPE_ORDER.indexOf(currentShape);
+    const nextIdx = (idx + 1) % SHAPE_ORDER.length;
+    assignShape(SHAPE_ORDER[nextIdx]);
+  }
+
+  function prevShape() {
+    const idx = SHAPE_ORDER.indexOf(currentShape);
+    const prevIdx = (idx - 1 + SHAPE_ORDER.length) % SHAPE_ORDER.length;
+    assignShape(SHAPE_ORDER[prevIdx]);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     رسم
+     ═══════════════════════════════════════════════════════ */
+  function draw() {
+    /* fade پس‌زمینه برای trail */
+    const fadeAlpha = morphProgress < 1 ? 0.10 : 0.16;
+    ctx.fillStyle = 'rgba(5, 5, 10, ' + fadeAlpha + ')';
+    ctx.fillRect(0, 0, W, H);
+
+    /* پارالاکس */
+    const px = (currentMX - 0.5) * 30;
+    const py = (currentMY - 0.5) * 30;
+
+    /* breathing — نفس‌کشیدن کلی */
+    const breathe = 1 + Math.sin(time * 0.55) * 0.028 * currentPause;
+
+    /* چرخش شکل */
+    const shapeRot = SHAPE_META[currentShape].rotation * time * currentPause;
+
+    /* هالهٔ مرکزی */
+    const glowR = Math.min(W, H) * 0.65;
+    const glow = ctx.createRadialGradient(CX + px, CY + py, 0, CX + px, CY + py, glowR);
+    const glowIntensity = 0.055 + (1 - morphProgress) * 0.05;
+    glow.addColorStop(0, 'rgba(217, 164, 65, ' + glowIntensity.toFixed(3) + ')');
+    glow.addColorStop(0.4, 'rgba(217, 164, 65, 0.02)');
+    glow.addColorStop(1, 'rgba(5, 5, 10, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    /* مبدا تبدیل */
+    ctx.save();
+    ctx.translate(CX + px, CY + py);
+    ctx.rotate(shapeRot);
+    ctx.scale(SCALE * breathe, SCALE * breathe);
+
+    /* محاسبه پیشرفت morph */
+    const e = morphProgress >= 1 ? 1 : easeInOutQuart(morphProgress);
+
+    /* دو لایه: هاله + هسته */
+    for (let i = 0; i < particles.length; i++) {
+      const p = particles[i];
+
+      /* موقعیت */
+      let x, y;
+      if (morphProgress >= 1) {
+        x = p.tx;
+        y = p.ty;
+      } else {
+        x = lerp(p.sx, p.tx, e);
+        y = lerp(p.sy, p.ty, e);
+      }
+
+      /* لرزش خیلی ملایم */
+      const wobble = Math.sin(time * 0.8 + p.seed) * 0.004 * currentPause;
+      x += wobble;
+      y += wobble * 0.6;
+
+      /* رنگ */
+      let cr, cg, cb;
+      if (morphProgress >= 1) {
+        cr = p.tr; cg = p.tg; cb = p.tb;
+      } else {
+        cr = Math.round(lerp(p.sr, p.tr, e));
+        cg = Math.round(lerp(p.sg, p.tg, e));
+        cb = Math.round(lerp(p.sb, p.tb, e));
+      }
+
+      /* اندازه — کمی رشد در طول morph */
+      const sizeBoost = morphProgress < 1 ? 1 + Math.sin(morphProgress * Math.PI) * 0.35 : 1;
+      const sz = p.size * sizeBoost * (1 / SCALE) * 2.4;
+
+      /* آلفا — کمی کمرنگ‌تر در طول morph */
+      const alpha = morphProgress < 1
+        ? 0.55 + e * 0.4
+        : 0.85 + Math.sin(time * 1.3 + p.seed) * 0.12;
+
+      /* هاله */
+      const glowR2 = sz * 3.2;
+      const g = ctx.createRadialGradient(x, y, 0, x, y, glowR2);
+      g.addColorStop(0, 'rgba(' + cr + ',' + cg + ',' + cb + ',' + (alpha * 0.32).toFixed(3) + ')');
+      g.addColorStop(1, 'rgba(' + cr + ',' + cg + ',' + cb + ',0)');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.arc(x, y, glowR2, 0, Math.PI * 2);
+      ctx.fill();
+
+      /* هسته */
+      ctx.fillStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',' + alpha.toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.arc(x, y, sz, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    ctx.restore();
+
+    /* هستهٔ درخشان مرکزی */
+    const coreR = 26 + Math.sin(time * 1.3) * 5 * currentPause;
+    const core = ctx.createRadialGradient(CX + px, CY + py, 0, CX + px, CY + py, coreR * 2.6);
+    core.addColorStop(0, 'rgba(255, 245, 220, ' + (0.5 + Math.sin(time * 1.6) * 0.1).toFixed(3) + ')');
+    core.addColorStop(0.35, 'rgba(230, 180, 90, 0.18)');
+    core.addColorStop(1, 'rgba(217, 164, 65, 0)');
+    ctx.fillStyle = core;
+    ctx.beginPath();
+    ctx.arc(CX + px, CY + py, coreR * 2.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255, 250, 235, 0.95)';
+    ctx.beginPath();
+    ctx.arc(CX + px, CY + py, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     حلقهٔ اصلی
+     ═══════════════════════════════════════════════════════ */
+  function loop(now) {
+    if (!running) return;
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+
+    /* FPS */
+    fpsAcc += dt; fpsCount++;
+    if (fpsAcc >= 0.5) {
+      const fpsEl = document.getElementById('fpsLabel');
+      if (fpsEl) fpsEl.textContent = Math.round(fpsCount / fpsAcc) + ' fps';
+      fpsAcc = 0; fpsCount = 0;
+    }
+
+    /* نرم‌سازی pause */
+    currentPause += (targetPause - currentPause) * 0.06;
+
+    /* پارالاکس نرم */
+    currentMX += (targetMX - currentMX) * 0.05;
+    currentMY += (targetMY - currentMY) * 0.05;
+
+    /* morph */
+    if (morphProgress < 1) {
+      morphProgress += dt / MORPH_DURATION;
+      if (morphProgress >= 1) {
+        morphProgress = 1;
+        const phaseEl = document.getElementById('phaseLabel');
+        if (phaseEl) phaseEl.textContent = 'HOLD';
+      }
+    } else {
+      holdTimer += dt * currentPause;
+      const remain = Math.max(0, HOLD_DURATION - holdTimer);
+      const timerEl = document.getElementById('timerLabel');
+      if (timerEl) timerEl.textContent = remain.toFixed(1) + 's';
+      if (holdTimer >= HOLD_DURATION) {
+        nextShape();
+      }
+    }
+
+    time += dt * currentPause;
+
+    draw();
+
+    rafId = requestAnimationFrame(loop);
+  }
+
+  /* ═══════════════════════════════════════════════════════
+     تعامل
+     ═══════════════════════════════════════════════════════ */
+  window.addEventListener('mousemove', function (e) {
+    targetMX = clamp(e.clientX / W, 0, 1);
+    targetMY = clamp(e.clientY / H, 0, 1);
+  }, { passive: true });
+
+  window.addEventListener('touchmove', function (e) {
+    if (e.touches.length) {
+      const t = e.touches[0];
+      targetMX = clamp(t.clientX / W, 0, 1);
+      targetMY = clamp(t.clientY / H, 0, 1);
+    }
+  }, { passive: true });
+
+  /* کلیک برای رفتن به شکل بعدی */
+  window.addEventListener('click', function (e) {
+    if (e.target.closest('.pause-btn')) return;
+    /* اگر morph در جریان است، نادیده بگیر */
+    if (morphProgress < 0.9) return;
+    nextShape();
+  });
+
+  /* اسکرول — جلو / عقب */
+  let wheelLock = 0;
+  window.addEventListener('wheel', function (e) {
+    const now = performance.now();
+    if (now - wheelLock < 700) return;
+    wheelLock = now;
+    if (e.deltaY > 0) nextShape();
+    else prevShape();
+  }, { passive: true });
+
+  /* کیبورد */
+  window.addEventListener('keydown', function (e) {
+    if (e.code === 'Space') {
+      e.preventDefault();
+      setPaused(!paused);
+    }
+    if (e.code === 'ArrowRight' || e.code === 'ArrowDown') {
+      if (morphProgress >= 0.9) nextShape();
+    }
+    if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') {
+      if (morphProgress >= 0.9) prevShape();
+    }
+  });
+
+  /* دکمهٔ pause */
+  const pauseBtn = document.getElementById('pauseBtn');
+  function setPaused(p) {
+    paused = p;
+    pauseBtn.classList.toggle('paused', p);
+    targetPause = p ? 0.02 : 1;
+  }
+  pauseBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    setPaused(!paused);
+  });
+
+  /* مخفی شدن تب */
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      running = false;
+      if (rafId) cancelAnimationFrame(rafId);
+    } else {
+      if (!running) {
+        running = true;
+        lastT = performance.now();
+        rafId = requestAnimationFrame(loop);
+      }
+    }
+  });
+
+  /* resize */
+  let rzTimer;
+  window.addEventListener('resize', function () {
+    clearTimeout(rzTimer);
+    rzTimer = setTimeout(function () {
+      resize();
+      /* موقعیت‌ها نرمال باقی می‌مانند، نیازی به بازسازی نیست */
+    }, 160);
+  }, { passive: true });
+
+  /* ═══════════════════════════════════════════════════════
+     راه‌اندازی
+     ═══════════════════════════════════════════════════════ */
+  resize();
+
+  /* اولین شکل */
+  assignShape('labyrinth');
+
+  /* نمایش تعداد ذرات */
+  const pcEl = document.getElementById('particleCount');
+  if (pcEl) pcEl.textContent = N;
+
+  /* اگر reduced motion، سرعت پایین‌تر */
+  if (prefersReduced) targetPause = 0.5;
+
+  lastT = performance.now();
+  rafId = requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+  </html>
